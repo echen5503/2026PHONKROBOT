@@ -11,19 +11,28 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 import com.pedropathing.ivy.Scheduler;
 
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
 @Autonomous
 public class BasicAuto extends OpMode {
     private Follower follower; // Add this
     private final PoseFactory p = PoseFactory.degrees();
-    private final Pose startPose = p.of(8, 7.5, 0);
-    private final Pose park = p.of(36, 36, 90);
 
-    //poses from before
+    // Robot dimensions (in), measured from the robot's center
+    private static final double W = 7.25;
+    private static final double L = 8.25;
 
-    private Path park() {
-        return line(startPose, park).linear(startPose, park);
+    private static final double HEADING = 180;
+
+    private final Pose startPose = p.of(24, 144 - L, HEADING);   // Starts facing the wall
+    private final Pose flowerAccess = p.of(24, 138 - L, HEADING); // Moves out to access flower
+    private final Pose flower = p.of(48, 138 - L, HEADING);       // Moves to flower
+    private final Pose collect = p.of(48, 140 - L, HEADING);      // Moves to collect flower
+    private final Pose park = p.of(12, 120, HEADING);             // Moves to park
+
+    private Path move(Pose from, Pose to) {
+        return line(from, to).constant(HEADING);
     }
 
     @Override
@@ -36,7 +45,12 @@ public class BasicAuto extends OpMode {
 
     @Override
     public void start() {
-        schedule(follow(follower, park()));
+        schedule(sequential(
+                follow(follower, move(startPose, flowerAccess)),
+                follow(follower, move(flowerAccess, flower)),
+                follow(follower, move(flower, collect)),
+                follow(follower, move(collect, park))
+        ));
     }
 
     @Override
